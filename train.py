@@ -3,6 +3,7 @@ from model import *
 import torch.optim as optim
 import math
 import time
+from tqdm import tqdm
 
 CONTINUE_TRAIN = False
 
@@ -65,12 +66,8 @@ def train(model, iterator, optimizer, criterion, clip):
     print("Batch num: " + str(len(iterator)))
 
     epoch_loss = 0
-    for i, batch in enumerate(iterator):
-        # print the batch index
-        if i % 50 == 0:
-            print("")
-        print(i, end=",")
 
+    for batch in tqdm(iterator):
         src = batch.src
         tgt = batch.tgt
         optimizer.zero_grad()
@@ -122,12 +119,12 @@ def epoch_time(start_time, end_time):
     return elapsed_mins, elapsed_secs
 
 
-def train_epoch(n_epochs):
+def train_epoch(opt):
     # best_validation_loss = float('inf')
 
     if CONTINUE_TRAIN:
         g_model.load_state_dict(torch.load('chatbot_transbertgpt-model.pt'))
-    for epoch in range(n_epochs):
+    for epoch in range(opt.epoches):
         start_time = time.time()
 
         train_loss = train(g_model, train_iterator, g_optimizer, g_criterion,
@@ -148,4 +145,7 @@ def train_epoch(n_epochs):
         )
         #print(f'\t Val. Loss: {validation_loss:.3f} |  Val. PPL: {math.exp(validation_loss):7.3f}')
 
-        torch.save(g_model.state_dict(), 'chatbot_transbertgpt-model.pt')
+        if epoch % opt.save_per_epoch == 0:
+            checkpoints_path = 'checkpoints_{time}'.format(
+                time.strftime('%m%d_%H%M'))
+            torch.save(g_model.state_dict(), checkpoints_path)

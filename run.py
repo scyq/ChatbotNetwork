@@ -1,11 +1,14 @@
 from train import *
 import csv
+from config import Config
+
+config = Config()
 
 TRAIN = True
 CHAT = False
 
 if TRAIN:
-    train_epoch(N_EPOCHS)
+    train_epoch(config)
 
 if CHAT:
     g_model.load_state_dict(torch.load('chatbot_transbertgpt-model.pt'))

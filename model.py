@@ -11,7 +11,6 @@ import random
 from transformers import BertTokenizer, BertModel, GPT2LMHeadModel
 
 BATCH_SIZE = 4
-N_EPOCHS = 5
 CLIP = 1
 SEED = 1234
 

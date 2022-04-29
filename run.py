@@ -2,13 +2,13 @@ from train import *
 import csv
 from config import Config
 
-config = Config()
+opt = Config()
 
 TRAIN = True
 CHAT = False
 
 if TRAIN:
-    train_epoch(config)
+    train_epoch(opt)
 
 if CHAT:
     g_model.load_state_dict(torch.load('chatbot_transbertgpt-model.pt'))
@@ -50,7 +50,7 @@ def talk(num):
                                    skip_header=False,
                                    fields=g_data_fields)
         test_iterator = BucketIterator(test_data,
-                                       batch_size=BATCH_SIZE,
+                                       batch_size=opt.batch_size,
                                        sort_key=lambda x: len(x.src),
                                        sort_within_batch=False,
                                        device=g_device)

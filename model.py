@@ -8,7 +8,7 @@ import numpy as np
 
 import random
 
-from transformers import BertTokenizer, BertModel, GPT2Tokenizer, GPT2LMHeadModel
+from transformers import BertTokenizer, BertModel, GPT2LMHeadModel
 
 BATCH_SIZE = 4
 N_EPOCHS = 5
@@ -24,6 +24,7 @@ torch.cuda.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 
 bert_model_name = "bert-base-chinese"
+gpt_model_name = "uer/gpt2-chinese-cluecorpussmall"
 
 # bert model
 g_bert_tokenizer = BertTokenizer.from_pretrained(bert_model_name)
@@ -35,11 +36,11 @@ g_bert = BertModel.from_pretrained(bert_model_name)
 g_bert_emb_dim = g_bert.config.to_dict()['hidden_size']  # 768
 
 # gpt model
-g_gpt_tokenizer = GPT2Tokenizer.from_pretrained('distilgpt2')
+g_gpt_tokenizer = BertTokenizer.from_pretrained(gpt_model_name)
 # g_gpt_tokenizer.add_special_tokens({'pad_token': g_bert_tokenizer.pad_token})
 g_gpt_vocab_size = g_gpt_tokenizer.vocab_size
 
-g_gpt = GPT2LMHeadModel.from_pretrained('distilgpt2')
+g_gpt = GPT2LMHeadModel.from_pretrained(gpt_model_name)
 g_gpt_emb_dim = g_gpt.config.to_dict()['n_embd']  # 768
 
 SRC = Field(use_vocab=False,
@@ -80,7 +81,6 @@ train_iterator, validation_iterator, test_iterator = BucketIterator.splits(
 
 
 class TransBertEncoder(nn.Module):
-
     def __init__(self, nhead=8, nlayers=6):
         super().__init__()
 
@@ -107,7 +107,6 @@ class TransBertEncoder(nn.Module):
 
 
 class TransGptDecoder(nn.Module):
-
     def __init__(self, nhead=8, nlayers=6):
         super().__init__()
 
@@ -158,7 +157,6 @@ class TransGptDecoder(nn.Module):
 
 class GruEncoder(nn.Module):
     """compress the request embeddings to meaning"""
-
     def __init__(self, hidden_size, input_size):
         super().__init__()
         self.gru = nn.GRU(input_size, hidden_size)
@@ -169,7 +167,6 @@ class GruEncoder(nn.Module):
 
 
 class GruDecoder(nn.Module):
-
     def __init__(self, hidden_size, output_size):
         super().__init__()
         self.gru = nn.GRU(output_size, hidden_size)
@@ -204,7 +201,6 @@ class GruDecoder(nn.Module):
 
 
 class DialogDNN(nn.Module):
-
     def __init__(self, input_size, hidden_size, output_size, dropout=0.5):
         super().__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
@@ -235,7 +231,6 @@ class DialogDNN(nn.Module):
 
 
 class Seq2Seq(nn.Module):
-
     def __init__(self, transbert_encoder, transgpt_decoder, gru_encoder,
                  gru_decoder, dialog_dnn):
         super().__init__()

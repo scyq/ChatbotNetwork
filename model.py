@@ -43,31 +43,41 @@ g_gpt_emb_dim = g_gpt.config.to_dict()['n_embd']  # 768
 SRC = Field(use_vocab=False,
             tokenize=g_bert_tokenizer.tokenize,
             preprocessing=g_bert_tokenizer.convert_tokens_to_ids,
-            init_token=g_bert_tokenizer.cls_token_id,
-            eos_token=g_bert_tokenizer.sep_token_id,
-            pad_token=g_bert_tokenizer.pad_token_id,
-            unk_token=g_bert_tokenizer.unk_token_id)
-
+            pad_token=g_bert_tokenizer.pad_token_id)
 TGT = Field(use_vocab=False,
             tokenize=g_gpt_tokenizer.tokenize,
             preprocessing=g_gpt_tokenizer.convert_tokens_to_ids,
-            init_token=g_gpt_tokenizer.bos_token_id,
-            eos_token=g_gpt_tokenizer.eos_token_id,
-            pad_token=g_gpt_tokenizer.pad_token_id,
-            unk_token=g_gpt_tokenizer.unk_token_id)
+            pad_token=g_gpt_tokenizer.pad_token_id)
+
+# SRC = Field(use_vocab=False,
+#             tokenize=g_bert_tokenizer.tokenize,
+#             preprocessing=g_bert_tokenizer.convert_tokens_to_ids,
+#             init_token=g_bert_tokenizer.cls_token_id,
+#             eos_token=g_bert_tokenizer.eos_token_id,
+#             pad_token=g_bert_tokenizer.pad_token_id,
+#             unk_token=g_bert_tokenizer.unk_token_id)
+
+# TGT = Field(use_vocab=False,
+#             tokenize=g_gpt_tokenizer.tokenize,
+#             preprocessing=g_gpt_tokenizer.convert_tokens_to_ids,
+#             init_token=g_gpt_tokenizer.bos_token_id,
+#             eos_token=g_gpt_tokenizer.eos_token_id,
+#             pad_token=g_gpt_tokenizer.pad_token_id,
+#             unk_token=g_gpt_tokenizer.unk_token_id)
 
 g_data_fields = [('src', SRC), ('tgt', TGT)]
 
 train_data, validation_data, test_data = TabularDataset.splits(
     path='datasets/',
-    format='csv',
-    train='chat_corpus_train.csv',
-    validation='chat_corpus_validation.csv',
-    test='chat_corpus_test.csv',
+    format='tsv',
+    train='chat_corpus_train.tsv',
+    validation='chat_corpus_validation.tsv',
+    test='chat_corpus_test.tsv',
     skip_header=False,
     fields=g_data_fields)
 
 g_device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print("Now we are using device: ", g_device)
 
 train_iterator, validation_iterator, test_iterator = BucketIterator.splits(
     (train_data, validation_data, test_data),

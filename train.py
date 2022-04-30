@@ -71,6 +71,7 @@ def train(model, iterator, optimizer, criterion, clip):
         src = batch.src
         print("src shape: ", src.shape)
         tgt = batch.tgt
+        print("tgt is", tgt)
         print("tgt shape: ", tgt.shape)
         optimizer.zero_grad()
         teacher_forcing_ratio = 1

@@ -1,4 +1,4 @@
 class Config:
-    epoches = 1000
-    save_per_epoch = 50  # 多少个epoch保存一个checkpoint
-    batch_size = 2
+    epoches = 300
+    save_per_epoch = 1  # 多少个epoch保存一个checkpoint
+    batch_size = 8

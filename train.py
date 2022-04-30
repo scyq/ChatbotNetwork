@@ -54,8 +54,8 @@ print(f'The model has {count_parameters(g_model):,} trainable parameters')
 
 g_optimizer = optim.Adam(g_model.parameters())
 
-g_criterion = nn.CrossEntropyLoss(ignore_index=g_gpt_tokenizer.eos_token_id)
-# g_criterion = nn.CrossEntropyLoss()
+# g_criterion = nn.CrossEntropyLoss(ignore_index=g_gpt_tokenizer.eos_token_id)
+g_criterion = nn.CrossEntropyLoss()
 
 
 def train(model, iterator, optimizer, criterion, clip):
@@ -69,22 +69,18 @@ def train(model, iterator, optimizer, criterion, clip):
 
     for batch in tqdm(iterator):
         src = batch.src
-        print("src shape: ", src.shape)
         tgt = batch.tgt
-        print("tgt is", tgt)
-        print("tgt shape: ", tgt.shape)
         optimizer.zero_grad()
         teacher_forcing_ratio = 1
         output = model(src,
                        tgt,
-                       response_embeds_len=tgt.size(0) - 1,
-                       response_len=tgt.size(0) - 1,
+                       response_embeds_len=tgt.size(0),
+                       response_len=tgt.size(0),
                        teacher_forcing_ratio=teacher_forcing_ratio)
         # tgt = [tgt len, batch size]
         # output = [tgt len, batch size, output dim]
-
         output_dim = output.shape[-1]
-        loss = criterion(output.view(-1, output_dim), tgt[1:].view(-1))
+        loss = criterion(output.view(-1, output_dim), tgt.view(-1))
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
         optimizer.step()

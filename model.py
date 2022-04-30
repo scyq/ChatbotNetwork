@@ -43,11 +43,13 @@ g_gpt_emb_dim = g_gpt.config.to_dict()['n_embd']  # 768
 SRC = Field(use_vocab=False,
             tokenize=g_bert_tokenizer.tokenize,
             preprocessing=g_bert_tokenizer.convert_tokens_to_ids,
-            pad_token=g_bert_tokenizer.pad_token_id)
+            pad_token=g_bert_tokenizer.pad_token_id,
+            fix_length=512)
 TGT = Field(use_vocab=False,
             tokenize=g_gpt_tokenizer.tokenize,
             preprocessing=g_gpt_tokenizer.convert_tokens_to_ids,
-            pad_token=g_gpt_tokenizer.pad_token_id)
+            pad_token=g_gpt_tokenizer.pad_token_id,
+            fix_length=1024)
 
 # SRC = Field(use_vocab=False,
 #             tokenize=g_bert_tokenizer.tokenize,
@@ -129,7 +131,6 @@ class TransGptDecoder(nn.Module):
     def forward(self, meaning, tgt, output_len, teacher_forcing_ratio):
         # size of this batch
         batch_size = meaning.size(1)
-        print("meaning shape: ", meaning.shape)
 
         context = self.transformer_decoder(meaning, memory=meaning)
         # context = [meaning len, batch size, embedding dim]
@@ -141,7 +142,6 @@ class TransGptDecoder(nn.Module):
                                   g_gpt_vocab_size).to(g_device)
         for t in range(output_len):
             if t == 0:
-                print("context shape: ", context.shape)
                 output = self.gpt(input_ids=None,
                                   inputs_embeds=context.transpose(0, 1))
                 # output = [batch size, meaning len, vocab dim]
@@ -150,7 +150,7 @@ class TransGptDecoder(nn.Module):
                     context = tgt[t].unsqueeze(0)
                 output = self.gpt(context.transpose(0, 1))
                 # output = [batch size, 1, vocab dim]
-            output = output.transpose(0, 1)
+            output = output[0].transpose(0, 1)
             predictions[t] = output[-1]
             token = torch.argmax(output[-1], 1)
             # token = [batch size]
@@ -191,8 +191,6 @@ class GruDecoder(nn.Module):
         # tensor to store decoder outputs
         outputs = torch.zeros(output_len, batch_size,
                               g_gpt_emb_dim).to(g_device)
-
-        print("outputs length: ", output_len)
 
         for t in range(0, output_len):
             # insert input token embedding, previous hidden state and the context state
@@ -264,7 +262,6 @@ class Seq2Seq(nn.Module):
         response_embeddings = self.gru_decoder(request_embeddings,
                                                response_embeds_len,
                                                response_meaning)
-        print("response embeddings shape: ", response_embeddings.shape)
         response = self.transgpt_decoder(response_embeddings, tgt,
                                          response_len, teacher_forcing_ratio)
 

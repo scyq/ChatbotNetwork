@@ -145,6 +145,6 @@ def train_epoch(opt):
         #print(f'\t Val. Loss: {validation_loss:.3f} |  Val. PPL: {math.exp(validation_loss):7.3f}')
 
         if epoch % opt.save_per_epoch == 0:
-            checkpoints_path = 'checkpoints_{time}'.format(
+            checkpoints_path = 'checkpoints_{}'.format(
                 time.strftime('%m%d_%H%M'))
             torch.save(g_model.state_dict(), checkpoints_path)

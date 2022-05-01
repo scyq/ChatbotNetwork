@@ -51,22 +51,6 @@ TGT = Field(use_vocab=False,
             pad_token=g_gpt_tokenizer.pad_token_id,
             fix_length=1024)
 
-# SRC = Field(use_vocab=False,
-#             tokenize=g_bert_tokenizer.tokenize,
-#             preprocessing=g_bert_tokenizer.convert_tokens_to_ids,
-#             init_token=g_bert_tokenizer.cls_token_id,
-#             eos_token=g_bert_tokenizer.eos_token_id,
-#             pad_token=g_bert_tokenizer.pad_token_id,
-#             unk_token=g_bert_tokenizer.unk_token_id)
-
-# TGT = Field(use_vocab=False,
-#             tokenize=g_gpt_tokenizer.tokenize,
-#             preprocessing=g_gpt_tokenizer.convert_tokens_to_ids,
-#             init_token=g_gpt_tokenizer.bos_token_id,
-#             eos_token=g_gpt_tokenizer.eos_token_id,
-#             pad_token=g_gpt_tokenizer.pad_token_id,
-#             unk_token=g_gpt_tokenizer.unk_token_id)
-
 g_data_fields = [('src', SRC), ('tgt', TGT)]
 
 train_data, validation_data, test_data = TabularDataset.splits(

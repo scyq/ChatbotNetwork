@@ -4,8 +4,9 @@ import torch.optim as optim
 import math
 import time
 from tqdm import tqdm
+from config import Config
 
-CONTINUE_TRAIN = False
+opt = Config()
 
 
 def freeze_layers(layers):
@@ -121,7 +122,7 @@ def epoch_time(start_time, end_time):
 def train_epoch(opt):
     # best_validation_loss = float('inf')
 
-    if CONTINUE_TRAIN:
+    if opt.continue_train:
         g_model.load_state_dict(torch.load('chatbot_transbertgpt-model.pt'))
     for epoch in range(opt.epoches):
         start_time = time.time()
@@ -145,6 +146,6 @@ def train_epoch(opt):
         #print(f'\t Val. Loss: {validation_loss:.3f} |  Val. PPL: {math.exp(validation_loss):7.3f}')
 
         if epoch % opt.save_per_epoch == 0:
-            checkpoints_path = 'checkpoints_{}'.format(
-                time.strftime('%m%d_%H%M'))
-            torch.save(g_model.state_dict(), checkpoints_path)
+            checkpoints_path = 'checkpoints/checkpoints_{time}_epoch{epoch}'.format(
+                time=time.strftime('%m%d_%H%M'), epoch=epoch + 1)
+            torch.save(g_model.state_dict(), checkpoints_path)  # 只存模型参数

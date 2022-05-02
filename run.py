@@ -1,23 +1,20 @@
 from train import *
 import csv
 from config import Config
+from tqdm import tqdm
 
 opt = Config()
 
-TRAIN = True
-CHAT = False
+TRAIN = opt.train_or_chat
+delimiter = "\t"
 
-if TRAIN:
-    train_epoch(opt)
-
-if CHAT:
-    g_model.load_state_dict(torch.load('chatbot_transbertgpt-model.pt'))
+print(f"We are on {'train' if TRAIN else 'chat'} mode.")
 
 
 # print chatbot's words
-def print_chat(sentences):
+def print_answer(sentences):
     # sentences = [sentence len, batch size, vocab dim]
-    print("chatbot: ", end="")
+    print("chatbot: ")
 
     sentence = g_gpt_tokenizer.decode(
         torch.argmax(sentences[:, 0, :], 1).tolist())
@@ -32,21 +29,21 @@ def print_src(sentences):
     print(sentence)
 
 
-def create_chat_csv(filename, sentence):
-    f_csv = open("datasets/" + filename + '.csv',
+def create_chat_tsv(filename, sentence):
+    f_csv = open("datasets/" + filename + '.tsv',
                  'w',
                  encoding='utf-8',
                  newline='')
-    csv_writer = csv.writer(f_csv)
+    csv_writer = csv.writer(f_csv, delimiter=delimiter)
     csv_writer.writerow([sentence, sentence])
 
 
 def talk(num):
     for i in range(num):
         user_input = input("user: ")
-        create_chat_csv("chat", user_input)
-        test_data = TabularDataset(path='datasets/chat.csv',
-                                   format='csv',
+        create_chat_tsv("chat", user_input)
+        test_data = TabularDataset(path='datasets/chat.tsv',
+                                   format='tsv',
                                    skip_header=False,
                                    fields=g_data_fields)
         test_iterator = BucketIterator(test_data,
@@ -61,11 +58,10 @@ def chat(model, iterator):
     model.eval()
 
     with torch.no_grad():
-        for i, batch in enumerate(iterator):
+        for batch in tqdm(iterator):
             src = batch.src
             tgt = batch.tgt
             teacher_forcing_ratio = 0  # turn off teacher forcing
-            print(model)
             output = model(src,
                            tgt,
                            response_embeds_len=tgt.size(0) - 1,
@@ -73,12 +69,13 @@ def chat(model, iterator):
                            teacher_forcing_ratio=teacher_forcing_ratio)
             # tgt = [tgt len, batch size]
             # output = [tgt len, batch size, output dim]
-            print(output)
-
-            print_chat(output)
-            print_src(src)
+            print_answer(output)
+            # print_src(src)
     return
 
 
-if CHAT:
+if TRAIN:
+    train_epoch(opt)
+else:
+    g_model.load_state_dict(torch.load(opt.chat_model_ckpt))
     talk(5)

@@ -53,7 +53,7 @@ def count_parameters(model):
 
 print(f'The model has {count_parameters(g_model):,} trainable parameters')
 
-g_optimizer = optim.Adam(g_model.parameters())
+g_optimizer = optim.Adam(g_model.parameters(), lr=opt.learning_rate)
 
 # g_criterion = nn.CrossEntropyLoss(ignore_index=g_gpt_tokenizer.eos_token_id)
 g_criterion = nn.CrossEntropyLoss()

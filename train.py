@@ -69,8 +69,8 @@ def train(model, iterator, optimizer, criterion, clip):
     epoch_loss = 0
 
     for batch in tqdm(iterator):
-        src = batch.src
-        tgt = batch.tgt
+        src = batch.src.cuda()
+        tgt = batch.tgt.cuda()
         optimizer.zero_grad()
         teacher_forcing_ratio = 1
         output = model(src,

@@ -8,7 +8,11 @@ import random
 from transformers import BertTokenizer, BertModel, GPT2LMHeadModel
 from config import Config
 
+import os
+
 opt = Config()
+
+os.environ['CUDA_VISIBLE_DEVICES'] = opt.cuda_device
 CLIP = 1
 SEED = 1234
 
@@ -62,15 +66,14 @@ train_data, validation_data, test_data = TabularDataset.splits(
     skip_header=False,
     fields=g_data_fields)
 
-g_device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print("Now we are using device: ", g_device)
+# g_device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# print("Now we are using device: ", g_device)
 
 train_iterator, validation_iterator, test_iterator = BucketIterator.splits(
     (train_data, validation_data, test_data),
     batch_size=opt.batch_size,
     sort_key=lambda x: len(x.src),  # function used to group the data
-    sort_within_batch=False,
-    device=g_device)
+    sort_within_batch=False)
 
 
 class TransBertEncoder(nn.Module):
@@ -122,7 +125,7 @@ class TransGptDecoder(nn.Module):
         # decide if we are going to use teacher forcing or not
         teacher_force = random.random() < teacher_forcing_ratio
         predictions = torch.zeros(output_len, batch_size,
-                                  g_gpt_vocab_size).to(g_device)
+                                  g_gpt_vocab_size).cuda()
         for t in range(output_len):
             ctx = context[t].unsqueeze(0)
             # if t == 0:
@@ -173,8 +176,7 @@ class GruDecoder(nn.Module):
         batch_size = src.size(1)
 
         # tensor to store decoder outputs
-        outputs = torch.zeros(output_len, batch_size,
-                              g_gpt_emb_dim).to(g_device)
+        outputs = torch.zeros(output_len, batch_size, g_gpt_emb_dim).cuda()
 
         for t in range(0, output_len):
             # insert input token embedding, previous hidden state and the context state
@@ -270,4 +272,6 @@ gru_encoder = GruEncoder(HID_DIM, ENC_EMB_DIM)
 gru_decoder = GruDecoder(HID_DIM, DEC_EMB_DIM)
 dialog_dnn = DialogDNN(HID_DIM, HID_DIM, HID_DIM)
 g_model = Seq2Seq(transbert_encoder, transgpt_decoder, gru_encoder,
-                  gru_decoder, dialog_dnn).to(g_device)
+                  gru_decoder, dialog_dnn)
+g_model = nn.DataParallel(g_model)
+g_model = g_model.cuda()

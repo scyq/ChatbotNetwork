@@ -3,7 +3,11 @@ import csv
 from config import Config
 from tqdm import tqdm
 
+import os
+
 opt = Config()
+
+os.environ['CUDA_VISIBLE_DEVICES'] = opt.cuda_device
 
 TRAIN = opt.train_or_chat
 delimiter = "\t"

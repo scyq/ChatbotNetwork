@@ -80,6 +80,8 @@ def train(model, iterator, optimizer, criterion, clip):
                        teacher_forcing_ratio=teacher_forcing_ratio)
         # tgt = [tgt len, batch size]
         # output = [tgt len, batch size, output dim]
+        # print(f"output shape: {output.shape}")
+        # print(f"tgt shape: {tgt.shape}")
         output_dim = output.shape[-1]
         loss = criterion(output.view(-1, output_dim), tgt.view(-1))
         loss.backward()

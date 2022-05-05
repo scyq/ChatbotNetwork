@@ -155,6 +155,7 @@ class GruEncoder(nn.Module):
         self.gru = nn.GRU(input_size, hidden_size)
 
     def forward(self, input):
+        self.gru.flatten_parameters()
         output, hidden = self.gru(input)
         return hidden
 
@@ -166,6 +167,7 @@ class GruDecoder(nn.Module):
         self.fc = nn.Linear(hidden_size * 2, output_size)
 
     def forward(self, src, output_len, hidden):
+        self.gru.flatten_parameters()
         context = hidden
         # context = [1, batch size, hidden dim]
 

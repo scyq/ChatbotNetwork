@@ -115,7 +115,6 @@ class TransGptDecoder(nn.Module):
     def forward(self, meaning, tgt, output_len, teacher_forcing_ratio):
         # size of this batch
         batch_size = meaning.size(1)
-
         context = self.transformer_decoder(meaning, memory=meaning)
         # context = [meaning len, batch size, embedding dim]
         # tgt = [tgt len, batch size]
@@ -125,21 +124,22 @@ class TransGptDecoder(nn.Module):
         predictions = torch.zeros(output_len, batch_size,
                                   g_gpt_vocab_size).to(g_device)
         for t in range(output_len):
-            if t == 0:
-                output = self.gpt(input_ids=None,
-                                  inputs_embeds=context.transpose(0, 1))
-                # output = [batch size, meaning len, vocab dim]
-            else:
-                if teacher_force and self.training:
-                    context = tgt[t].unsqueeze(0)
-                output = self.gpt(context.transpose(0, 1))
-                # output = [batch size, 1, vocab dim]
+            ctx = context[t].unsqueeze(0)
+            # if t == 0:
+            output = self.gpt(input_ids=None,
+                              inputs_embeds=ctx.transpose(0, 1))
+            # output = [batch size, meaning len, vocab dim]
+            # else:
+            #     if teacher_force and self.training:
+            #         context = tgt[t].unsqueeze(0)
+            #     output = self.gpt(context.transpose(0, 1))
+            # output = [batch size, 1, vocab dim]
             output = output[0].transpose(0, 1)
             predictions[t] = output[-1]
             token = torch.argmax(output[-1], 1)
             # token = [batch size]
 
-            context = token.unsqueeze(0)
+            # context = token.unsqueeze(0)
             # context = [1, batch size]
 
         return predictions

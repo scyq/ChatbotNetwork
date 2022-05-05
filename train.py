@@ -85,6 +85,7 @@ def train(model, iterator, optimizer, criterion, clip):
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
         optimizer.step()
+        print(f"Batch loss: {loss.item()}")
         epoch_loss += loss.item()
     return epoch_loss / len(iterator)
 
@@ -123,7 +124,8 @@ def train_epoch(opt):
     # best_validation_loss = float('inf')
 
     if opt.continue_train:
-        g_model.load_state_dict(torch.load('chatbot_transbertgpt-model.pt'))
+        g_model.load_state_dict(torch.load(opt.chat_model_ckpt))
+        print("Loading checkpoints successes!")
     for epoch in range(opt.epoches):
         start_time = time.time()
 

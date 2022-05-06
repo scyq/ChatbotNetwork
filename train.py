@@ -1,4 +1,5 @@
-from model import *
+# from model import *
+from model2 import *
 
 import torch.optim as optim
 import math
@@ -61,8 +62,8 @@ g_criterion = nn.CrossEntropyLoss()
 
 def train(model, iterator, optimizer, criterion, clip):
     model.train()
-    g_bert.eval()
-    g_gpt.eval()
+    # g_bert.eval()
+    # g_gpt.eval()
 
     print("Batch num: " + str(len(iterator)))
 
@@ -73,22 +74,25 @@ def train(model, iterator, optimizer, criterion, clip):
         tgt = batch.tgt.cuda()
         optimizer.zero_grad()
         teacher_forcing_ratio = 1
-        output = model(src,
-                       tgt,
-                       response_embeds_len=tgt.size(0),
-                       response_len=tgt.size(0),
-                       teacher_forcing_ratio=teacher_forcing_ratio)
+        output = model(src, tgt[:-1], teacher_forcing_ratio)
         # tgt = [tgt len, batch size]
         # output = [tgt len, batch size, output dim]
-        # print(f"output shape: {output.shape}")
-        # print(f"tgt shape: {tgt.shape}")
         output_dim = output.shape[-1]
-        loss = criterion(output.view(-1, output_dim), tgt.view(-1))
+
+        # tgt = [(tgt len - 1) * batch size]
+        # output = [(tgt len - 1) * batch size, output dim]
+        loss = criterion(output[:-1].view(-1, output_dim), tgt[1:-1].view(-1))
+
         loss.backward()
+
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
-        optimizer.step()
+
         print(f"Batch loss: {loss.item()}")
+
+        optimizer.step()
+
         epoch_loss += loss.item()
+
     return epoch_loss / len(iterator)
 
 

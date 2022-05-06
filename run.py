@@ -18,7 +18,7 @@ print(f"We are on {'train' if TRAIN else 'chat'} mode.")
 # print chatbot's words
 def print_answer(sentences):
     # sentences = [sentence len, batch size, vocab dim]
-    print("chatbot: ")
+    print("chatbot: ", end="")
 
     sentence = g_gpt_tokenizer.decode(
         torch.argmax(sentences[:, 0, :], 1).tolist())
@@ -53,8 +53,7 @@ def talk(num):
         test_iterator = BucketIterator(test_data,
                                        batch_size=opt.batch_size,
                                        sort_key=lambda x: len(x.src),
-                                       sort_within_batch=False,
-                                       device=g_device)
+                                       sort_within_batch=False)
         chat(g_model, test_iterator)
 
 
@@ -63,14 +62,22 @@ def chat(model, iterator):
 
     with torch.no_grad():
         for batch in tqdm(iterator):
-            src = batch.src
-            tgt = batch.tgt
+            src = batch.src.cuda()
+            tgt = batch.tgt.cuda()
             teacher_forcing_ratio = 0  # turn off teacher forcing
+
+            # 0506下午瞎改的
             output = model(src,
                            tgt,
-                           response_embeds_len=tgt.size(0) - 1,
-                           response_len=2 * tgt.size(0) - 1,
+                           response_embeds_len=tgt.size(0),
+                           response_len=tgt.size(0),
                            teacher_forcing_ratio=teacher_forcing_ratio)
+
+            # output = model(src,
+            #                tgt,
+            #                response_embeds_len=tgt.size(0) - 1,
+            #                response_len=2 * tgt.size(0) - 1,
+            #                teacher_forcing_ratio=teacher_forcing_ratio)
             # tgt = [tgt len, batch size]
             # output = [tgt len, batch size, output dim]
             print_answer(output)

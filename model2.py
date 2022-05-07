@@ -77,29 +77,6 @@ train_iterator, validation_iterator, test_iterator = BucketIterator.splits(
     sort_within_batch=False)
 
 
-# print chatbot's words
-def print_chat(sentences):
-    print("chatbot: ", end="")
-    for word_embeds in sentences:
-        word_embed = word_embeds[0]
-        # find one shot index from word embedding
-        max_idx_t = word_embed.argmax()
-        max_idx = max_idx_t.item()
-        word = g_tokenizer.convert_ids_to_tokens(max_idx)
-        print(word, end=" ")
-    print("")  # new line at the end of sentence
-
-
-def print_tgt(sentences):
-    print("tgt: ", end="")
-    for word_embeds in sentences:
-        word_embed = word_embeds[0]
-        max_idx = word_embed.item()
-        word = g_tokenizer.convert_ids_to_tokens(max_idx)
-        print(word, end=" ")
-    print("")  # new line at the end of sentence
-
-
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model, dropout=0.1, max_len=5000):
         super(PositionalEncoding, self).__init__()
@@ -195,7 +172,7 @@ class TransBertDecoder(nn.Module):
             # initialized the input of the decoder with sos_idx (start of sentence token idx)
             output = torch.full((output_len + 1, batch_size),
                                 g_tokenizer.cls_token_id,
-                                dtype=torch.long)
+                                dtype=torch.long).cuda()
             predictions = torch.zeros(output_len, batch_size,
                                       g_vocab_size).cuda()
 

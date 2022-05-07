@@ -54,10 +54,8 @@ def count_parameters(model):
 
 print(f'The model has {count_parameters(g_model):,} trainable parameters')
 
-g_optimizer = optim.Adam(g_model.parameters(), lr=opt.learning_rate)
-
-# g_criterion = nn.CrossEntropyLoss(ignore_index=g_gpt_tokenizer.eos_token_id)
-g_criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(g_model.parameters(), lr=opt.learning_rate)
+criterion = nn.CrossEntropyLoss()
 
 
 def train(model, iterator, optimizer, criterion, clip):
@@ -135,8 +133,7 @@ def train_epoch(opt):
     for epoch in range(opt.epoches):
         start_time = time.time()
 
-        train_loss = train(g_model, train_iterator, g_optimizer, g_criterion,
-                           CLIP)
+        train_loss = train(g_model, train_iterator, optimizer, criterion, CLIP)
         # validation_loss = evaluate(model, validation_iterator, criterion)
 
         end_time = time.time()

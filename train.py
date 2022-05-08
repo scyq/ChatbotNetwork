@@ -126,10 +126,14 @@ def epoch_time(start_time, end_time):
 
 def train_epoch(opt):
     # best_validation_loss = float('inf')
-
+    start_epoch = 1
     if opt.continue_train:
         g_model.load_state_dict(torch.load(opt.chat_model_ckpt))
-        print("Loading checkpoints successes!")
+        try:
+            start_epoch += (int)(opt.chat_model_ckpt[-2:])
+        except:
+            start_epoch += (int)(opt.chat_model_ckpt[-1:])
+        print(f"Loading checkpoints from epoch {start_epoch - 1} successes!")
     for epoch in range(opt.epoches):
         start_time = time.time()
 
@@ -144,7 +148,9 @@ def train_epoch(opt):
         #     best_validation_loss = validation_loss
         #     torch.save(model.state_dict(), 'chatbot_rnn-model.pt')
 
-        print(f'\nEpoch: {epoch + 1:02} | Time: {epoch_mins}m {epoch_secs}s')
+        print(
+            f'\nEpoch: {epoch + start_epoch} | Time: {epoch_mins}m {epoch_secs}s'
+        )
         print(
             f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}'
         )
@@ -152,5 +158,5 @@ def train_epoch(opt):
 
         if epoch % opt.save_per_epoch == 0:
             checkpoints_path = 'checkpoints/checkpoints_{time}_epoch{epoch}'.format(
-                time=time.strftime('%m%d_%H%M'), epoch=epoch + 1)
+                time=time.strftime('%m%d_%H%M'), epoch=start_epoch + epoch)
             torch.save(g_model.state_dict(), checkpoints_path)  # 只存模型参数
